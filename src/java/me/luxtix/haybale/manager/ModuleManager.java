@@ -50,6 +50,7 @@ public class ModuleManager
         this.modules.add(new MCF());
         this.modules.add(new NoSoundLag());
         this.modules.add(new AutoLog());
+        this.modules.add(new Quiver());
         this.modules.add(new AutoReconnect());
         this.modules.add(new RPC());
         this.modules.add(new Godmode());
