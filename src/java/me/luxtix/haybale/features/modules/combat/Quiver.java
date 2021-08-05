@@ -2,7 +2,7 @@ package me.luxtix.haybale.features.modules.combat;
 
 import me.luxtix.haybale.features.modules.Module;
 import me.luxtix.haybale.features.setting.Setting;
-import me.luxtix.haybale.util.InventoryUtil;
+import me.luxtix.haybale.util.InventoryUtil2;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemBow;
 import net.minecraft.network.play.client.CPacketPlayer;
@@ -22,7 +22,7 @@ public class Quiver extends Module {
                 mc.player.connection.sendPacket(new CPacketPlayer.Rotation(mc.player.cameraYaw, -90f, mc.player.onGround));
                 mc.playerController.onStoppedUsingItem(mc.player);
             }
-            List<Integer> arrowSlots = InventoryUtil.getItemInventory(Items.TIPPED_ARROW);
+            List<Integer> arrowSlots = InventoryUtil2.getItemInventory(Items.TIPPED_ARROW);
             if(arrowSlots.get(0) == -1) return;
             int speedSlot = -1;
             int strengthSlot = -1;
@@ -40,6 +40,6 @@ public class Quiver extends Module {
     }
 
     private int findBow() {
-        return  InventoryUtil.getItemHotbar(Items.BOW);
+        return  InventoryUtil2.getItemHotbar(Items.BOW);
     }
 }
