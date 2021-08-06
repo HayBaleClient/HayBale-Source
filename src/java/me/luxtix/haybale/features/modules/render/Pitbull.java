@@ -2,7 +2,7 @@ package me.travis.wurstplusthree.hack.hacks.render;
 
 import me.luxtix.haybale.features.modules.render;
 import me.luxtix.haybale.setting.ColourSetting;
-import me.luxtix.haybale.util.Colour
+import me.luxtix.haybale.util.Colour;
 
 /**
  * @author Madmegsox1
