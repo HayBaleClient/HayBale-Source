@@ -31,21 +31,24 @@ public class ModuleManager
     public Map<Module, Color> moduleColorMap = new HashMap<Module, Color>();
 
     public void init() {
-        this.modules.add(new Offhand());
+        this.modules.add(new OffhandRW());
         this.modules.add(new Surround());
         this.modules.add(new BedAura());
-        this.modules.add(new ItemViewModel());
-        this.modules.add(new HoleFiller());
+        this.modules.add(new Swing());
+	this.modules.add(new Yport());
+        this.modules.add(new Flatten());
         this.modules.add(new Quiver());
+        this.modules.add(new SilentXp());
+        this.modules.add(new SelfAnvil());
         this.modules.add(new CrystalScale());
         this.modules.add(new AutoTrap());
         this.modules.add(new AutoCrystal());
         this.modules.add(new Criticals());
         this.modules.add(new Killaura());
         this.modules.add(new Selftrap());
+        this.modules.add(new HandColor());
         this.modules.add(new Webaura());
         this.modules.add(new AutoArmor());
-        this.modules.add(new Auto32k());
         this.modules.add(new ChatModifier());
         this.modules.add(new NoRotate());
         this.modules.add(new MCF());
@@ -53,7 +56,7 @@ public class ModuleManager
         this.modules.add(new AutoLog());
         this.modules.add(new AutoReconnect());
         this.modules.add(new RPC());
-        this.modules.add(new Godmode());
+        this.modules.add(new StepRW());
         this.modules.add(new ReverseStep());
         this.modules.add(new Strafe());
         this.modules.add(new Velocity());
@@ -80,9 +83,7 @@ public class ModuleManager
         this.modules.add(new Trajectories());
         this.modules.add(new Tracer());
         this.modules.add(new LogoutSpots());
-        this.modules.add(new XRay());
         this.modules.add(new OffscreenESP());
-        this.modules.add(new HandColor());
         this.modules.add(new Cosmetics());
         this.modules.add(new Notifications());
         this.modules.add(new HUD());
@@ -96,6 +97,7 @@ public class ModuleManager
         this.modules.add(new ServerModule());
         this.modules.add(new Screens());
         this.modules.add(new Media());
+        this.modules.add(new Aspect());
         this.moduleColorMap.put(this.getModuleByClass(Auto32k.class), new Color(185, 212, 144));
         this.moduleColorMap.put(this.getModuleByClass(AutoArmor.class), new Color(74, 227, 206));
         this.moduleColorMap.put(this.getModuleByClass(AutoCrystal.class), new Color(255, 15, 43));
