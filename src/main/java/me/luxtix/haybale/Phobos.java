@@ -18,8 +18,6 @@ public class Phobos {
     public static final String MODID = "Phobos";
     public static final String MODNAME = "HayBale";
     public static final String MODVER = "1.0.1";
-    public static final String NAME_UNICODE = "3\u1d00\u0280\u1d1b\u029c\u029c4\u1d04\u1d0b";
-    public static final String PHOBOS_UNICODE = "\u1d18\u029c\u1d0f\u0299\u1d0f\ua731";
     public static final String CHAT_SUFFIX = " \u23d0 3\u1d00\u0280\u1d1b\u029c\u029c4\u1d04\u1d0b";
     public static final String PHOBOS_SUFFIX = " \u23d0 \u1d18\u029c\u1d0f\u0299\u1d0f\ua731";
     public static final Logger LOGGER = LogManager.getLogger("Phobos");
@@ -160,7 +158,7 @@ public class Phobos {
         LOGGER.info("Luxotick is cute!!!");
         LOGGER.info("faggot above - NudTix");
         LOGGER.info("Luxotick wins again");
-        LOGGER.info("gtfo my logs - LyFraude");
+        LOGGER.info("LyFraude is gay");
     }
 
     @Mod.EventHandler
