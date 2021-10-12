@@ -2,7 +2,7 @@ package me.luxtix.haybale.util;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import me.luxtix.haybale.Phobos;
-import me.luxtix.haybale.mixin.mixins.IEntityLivingBase;
+import me.luxtix.haybale.mixin.mixins.accessors.IEntityLivingBase;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
