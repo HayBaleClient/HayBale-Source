@@ -138,6 +138,15 @@ public class PlayerUtil2 implements Util {
                 connection.disconnect();
         }
     }
+    
+    public static double getBaseMoveSpeed() {
+        double baseSpeed = 0.2873;
+        if (mc.player != null && mc.player.isPotionActive(Potion.getPotionById(1))) {
+            final int amplifier = mc.player.getActivePotionEffect(Potion.getPotionById(1)).getAmplifier();
+            baseSpeed *= 1.0 + 0.2 * (amplifier + 1);
+        }
+        return baseSpeed;
+    }
 
     public static class lookUpUUID implements Runnable {
         private final String name;
