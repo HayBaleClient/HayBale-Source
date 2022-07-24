@@ -147,6 +147,10 @@ public class PlayerUtil2 implements Util {
         }
         return baseSpeed;
     }
+   
+    public static boolean isMoving(EntityLivingBase entity) {
+        return entity.moveForward != 0 || entity.moveStrafing != 0;
+    }
 
     public static class lookUpUUID implements Runnable {
         private final String name;
