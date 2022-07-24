@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.util.UUIDTypeAdapter;
 import me.luxtix.haybale.features.command.Command;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.advancements.AdvancementManager;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.player.EntityPlayer;
