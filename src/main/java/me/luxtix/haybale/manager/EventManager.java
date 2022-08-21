@@ -1,8 +1,21 @@
+// Decompiled with: CFR 0.151
+// Class Version: 8
 package me.luxtix.haybale.manager;
 
 import com.google.common.base.Strings;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import me.luxtix.haybale.Phobos;
-import me.luxtix.haybale.event.events.*;
+import me.luxtix.haybale.event.events.ClientEvent;
+import me.luxtix.haybale.event.events.ConnectionEvent;
+import me.luxtix.haybale.event.events.PacketEvent;
+import me.luxtix.haybale.event.events.Render2DEvent;
+import me.luxtix.haybale.event.events.Render3DEvent;
+import me.luxtix.haybale.event.events.TotemPopEvent;
+import me.luxtix.haybale.event.events.UpdateWalkingPlayerEvent;
 import me.luxtix.haybale.features.Feature;
 import me.luxtix.haybale.features.command.Command;
 import me.luxtix.haybale.features.modules.client.Managers;
@@ -20,27 +33,19 @@ import net.minecraft.network.play.client.CPacketHeldItemChange;
 import net.minecraft.network.play.server.SPacketEntityStatus;
 import net.minecraft.network.play.server.SPacketPlayerListItem;
 import net.minecraft.network.play.server.SPacketTimeUpdate;
-import net.minecraft.world.World;
 import net.minecraftforge.client.event.ClientChatEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.fml.common.eventhandler.Event;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import org.lwjgl.opengl.GL11;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public class EventManager
-        extends Feature {
+extends Feature {
     private final Timer timer = new Timer();
     private final Timer logoutTimer = new Timer();
     private final Timer switchTimer = new Timer();
@@ -81,14 +86,14 @@ public class EventManager
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority=EventPriority.HIGHEST)
     public void onTickHighest(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.START) {
             this.tickOngoing.set(true);
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent(priority=EventPriority.LOWEST)
     public void onTickLowest(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             this.tickOngoing.set(false);
@@ -121,7 +126,7 @@ public class EventManager
         Phobos.moduleManager.onTick();
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority=EventPriority.HIGHEST)
     public void onUpdateWalkingPlayer(UpdateWalkingPlayerEvent event) {
         if (EventManager.fullNullCheck()) {
             return;
@@ -156,15 +161,15 @@ public class EventManager
         }
         Phobos.serverManager.onPacketReceived();
         if (event.getPacket() instanceof SPacketEntityStatus) {
-            SPacketEntityStatus packet = event.getPacket();
+            SPacketEntityStatus packet = (SPacketEntityStatus)event.getPacket();
             if (packet.getOpCode() == 35 && packet.getEntity(EventManager.mc.world) instanceof EntityPlayer) {
-                EntityPlayer player = (EntityPlayer) packet.getEntity(EventManager.mc.world);
+                EntityPlayer player = (EntityPlayer)packet.getEntity(EventManager.mc.world);
                 MinecraftForge.EVENT_BUS.post(new TotemPopEvent(player));
                 Phobos.totemPopManager.onTotemPop(player);
                 Phobos.potionManager.onTotemPop(player);
             }
         } else if (event.getPacket() instanceof SPacketPlayerListItem && !EventManager.fullNullCheck() && this.logoutTimer.passedS(1.0)) {
-            SPacketPlayerListItem packet = event.getPacket();
+            SPacketPlayerListItem packet = (SPacketPlayerListItem)event.getPacket();
             if (!SPacketPlayerListItem.Action.ADD_PLAYER.equals(packet.getAction()) && !SPacketPlayerListItem.Action.REMOVE_PLAYER.equals(packet.getAction())) {
                 return;
             }
@@ -214,7 +219,7 @@ public class EventManager
         GL11.glGetFloat(2983, projectionPort);
         GL11.glGetInteger(2978, viewPort);
         ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getMinecraft());
-        projection.updateMatrices(viewPort, modelView, projectionPort, (double) scaledResolution.getScaledWidth() / (double) Minecraft.getMinecraft().displayWidth, (double) scaledResolution.getScaledHeight() / (double) Minecraft.getMinecraft().displayHeight);
+        projection.updateMatrices(viewPort, modelView, projectionPort, (double)scaledResolution.getScaledWidth() / (double)Minecraft.getMinecraft().displayWidth, (double)scaledResolution.getScaledHeight() / (double)Minecraft.getMinecraft().displayHeight);
         Phobos.moduleManager.onRender3D(render3dEvent);
         GlStateManager.glLineWidth(1.0f);
         GlStateManager.shadeModel(7424);
@@ -238,7 +243,7 @@ public class EventManager
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.LOW)
+    @SubscribeEvent(priority=EventPriority.LOW)
     public void onRenderGameOverlayEvent(RenderGameOverlayEvent.Text event) {
         if (event.getType().equals(RenderGameOverlayEvent.ElementType.TEXT)) {
             ScaledResolution resolution = new ScaledResolution(mc);
@@ -248,7 +253,7 @@ public class EventManager
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority=EventPriority.HIGHEST)
     public void onChatSent(ClientChatEvent event) {
         if (event.getMessage().startsWith(Command.getCommandPrefix())) {
             event.setCanceled(true);
@@ -259,9 +264,10 @@ public class EventManager
                 } else {
                     Command.sendMessage("Please enter a command.");
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 e.printStackTrace();
-                Command.sendMessage("\u00a7cAn error occurred while running this command. Check the log!");
+                Command.sendMessage("§cAn error occurred while running this command. Check the log!");
             }
             event.setMessage("");
         }
