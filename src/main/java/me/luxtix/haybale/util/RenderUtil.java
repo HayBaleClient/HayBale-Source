@@ -1,13 +1,32 @@
+// Decompiled with: CFR 0.151
+// Class Version: 8
 package me.luxtix.haybale.util;
 
+import java.awt.Color;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Objects;
 import me.luxtix.haybale.Phobos;
+import me.luxtix.haybale.util.ColorUtil;
+import me.luxtix.haybale.util.EntityUtil;
+import me.luxtix.haybale.util.GLUProjection;
+import me.luxtix.haybale.util.Util;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.model.ModelBiped;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.RenderGlobal;
+import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -20,8 +39,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.EXTFramebufferObject;
@@ -30,13 +47,8 @@ import org.lwjgl.util.glu.Disk;
 import org.lwjgl.util.glu.GLU;
 import org.lwjgl.util.glu.Sphere;
 
-import java.awt.*;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.util.*;
-
 public class RenderUtil
-        implements Util {
+implements Util {
     private static final Frustum frustrum = new Frustum();
     private static final FloatBuffer screenCoords = BufferUtils.createFloatBuffer(3);
     private static final IntBuffer viewport = BufferUtils.createIntBuffer(16);
@@ -55,7 +67,7 @@ public class RenderUtil
         GL11.glGetFloat(2983, projection);
         GL11.glGetInteger(2978, viewport);
         ScaledResolution res = new ScaledResolution(Minecraft.getMinecraft());
-        GLUProjection.getInstance().updateMatrices(viewport, modelView, projection, (float) res.getScaledWidth() / (float) Minecraft.getMinecraft().displayWidth, (float) res.getScaledHeight() / (float) Minecraft.getMinecraft().displayHeight);
+        GLUProjection.getInstance().updateMatrices(viewport, modelView, projection, (float)res.getScaledWidth() / (float)Minecraft.getMinecraft().displayWidth, (float)res.getScaledHeight() / (float)Minecraft.getMinecraft().displayHeight);
     }
 
     public static void drawRectangleCorrectly(int x, int y, int w, int h, int color) {
@@ -68,7 +80,7 @@ public class RenderUtil
         GlStateManager.translate(projection.getX(), projection.getY(), 0.0);
         String text = name + ": " + Math.round(RenderUtil.mc.player.getDistance(pos.getX(), pos.getY(), pos.getZ())) + "M";
         float textWidth = Phobos.textManager.getStringWidth(text);
-        Phobos.textManager.drawString(text, -(textWidth / 2.0f), -((float) Phobos.textManager.getFontHeight() / 2.0f) + (float) Phobos.textManager.getFontHeight() / 2.0f, color.getRGB(), false);
+        Phobos.textManager.drawString(text, -(textWidth / 2.0f), -((float)Phobos.textManager.getFontHeight() / 2.0f) + (float)Phobos.textManager.getFontHeight() / 2.0f, color.getRGB(), false);
         GlStateManager.translate(-projection.getX(), -projection.getY(), 0.0);
         GlStateManager.popMatrix();
     }
@@ -81,10 +93,10 @@ public class RenderUtil
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder BufferBuilder2 = tessellator.getBuffer();
         BufferBuilder2.begin(7, DefaultVertexFormats.POSITION_TEX);
-        BufferBuilder2.pos(x + 0, y + height, zLevel).tex((float) (textureX + 0) * 0.00390625f, (float) (textureY + height) * 0.00390625f).endVertex();
-        BufferBuilder2.pos(x + width, y + height, zLevel).tex((float) (textureX + width) * 0.00390625f, (float) (textureY + height) * 0.00390625f).endVertex();
-        BufferBuilder2.pos(x + width, y + 0, zLevel).tex((float) (textureX + width) * 0.00390625f, (float) (textureY + 0) * 0.00390625f).endVertex();
-        BufferBuilder2.pos(x + 0, y + 0, zLevel).tex((float) (textureX + 0) * 0.00390625f, (float) (textureY + 0) * 0.00390625f).endVertex();
+        BufferBuilder2.pos(x + 0, y + height, zLevel).tex((float)(textureX + 0) * 0.00390625f, (float)(textureY + height) * 0.00390625f).endVertex();
+        BufferBuilder2.pos(x + width, y + height, zLevel).tex((float)(textureX + width) * 0.00390625f, (float)(textureY + height) * 0.00390625f).endVertex();
+        BufferBuilder2.pos(x + width, y + 0, zLevel).tex((float)(textureX + width) * 0.00390625f, (float)(textureY + 0) * 0.00390625f).endVertex();
+        BufferBuilder2.pos(x + 0, y + 0, zLevel).tex((float)(textureX + 0) * 0.00390625f, (float)(textureY + 0) * 0.00390625f).endVertex();
         tessellator.draw();
     }
 
@@ -118,14 +130,14 @@ public class RenderUtil
         IBlockState iblockstate = RenderUtil.mc.world.getBlockState(pos);
         Vec3d interp = EntityUtil.interpolateEntity(RenderUtil.mc.player, mc.getRenderPartialTicks());
         AxisAlignedBB bb = iblockstate.getSelectedBoundingBox(RenderUtil.mc.world, pos).grow(0.002f).offset(-interp.x, -interp.y, -interp.z);
-        float red = (float) startColor.getRed() / 255.0f;
-        float green = (float) startColor.getGreen() / 255.0f;
-        float blue = (float) startColor.getBlue() / 255.0f;
-        float alpha = (float) startColor.getAlpha() / 255.0f;
-        float red1 = (float) endColor.getRed() / 255.0f;
-        float green1 = (float) endColor.getGreen() / 255.0f;
-        float blue1 = (float) endColor.getBlue() / 255.0f;
-        float alpha1 = (float) endColor.getAlpha() / 255.0f;
+        float red = (float)startColor.getRed() / 255.0f;
+        float green = (float)startColor.getGreen() / 255.0f;
+        float blue = (float)startColor.getBlue() / 255.0f;
+        float alpha = (float)startColor.getAlpha() / 255.0f;
+        float red1 = (float)endColor.getRed() / 255.0f;
+        float green1 = (float)endColor.getGreen() / 255.0f;
+        float blue1 = (float)endColor.getBlue() / 255.0f;
+        float alpha1 = (float)endColor.getAlpha() / 255.0f;
         double x1 = 0.0;
         double y1 = 0.0;
         double z1 = 0.0;
@@ -142,36 +154,36 @@ public class RenderUtil
         } else if (face == EnumFacing.UP) {
             x1 = bb.minX;
             x2 = bb.maxX;
-            y1 = bb.maxY / (double) (half ? 2 : 1);
-            y2 = bb.maxY / (double) (half ? 2 : 1);
+            y1 = bb.maxY / (double)(half ? 2 : 1);
+            y2 = bb.maxY / (double)(half ? 2 : 1);
             z1 = bb.minZ;
             z2 = bb.maxZ;
         } else if (face == EnumFacing.EAST) {
             x1 = bb.maxX;
             x2 = bb.maxX;
             y1 = bb.minY + (top ? 0.5 : 0.0);
-            y2 = bb.maxY / (double) (half ? 2 : 1);
+            y2 = bb.maxY / (double)(half ? 2 : 1);
             z1 = bb.minZ;
             z2 = bb.maxZ;
         } else if (face == EnumFacing.WEST) {
             x1 = bb.minX;
             x2 = bb.minX;
             y1 = bb.minY + (top ? 0.5 : 0.0);
-            y2 = bb.maxY / (double) (half ? 2 : 1);
+            y2 = bb.maxY / (double)(half ? 2 : 1);
             z1 = bb.minZ;
             z2 = bb.maxZ;
         } else if (face == EnumFacing.SOUTH) {
             x1 = bb.minX;
             x2 = bb.maxX;
             y1 = bb.minY + (top ? 0.5 : 0.0);
-            y2 = bb.maxY / (double) (half ? 2 : 1);
+            y2 = bb.maxY / (double)(half ? 2 : 1);
             z1 = bb.maxZ;
             z2 = bb.maxZ;
         } else if (face == EnumFacing.NORTH) {
             x1 = bb.minX;
             x2 = bb.maxX;
             y1 = bb.minY + (top ? 0.5 : 0.0);
-            y2 = bb.maxY / (double) (half ? 2 : 1);
+            y2 = bb.maxY / (double)(half ? 2 : 1);
             z1 = bb.minZ;
             z2 = bb.minZ;
         }
@@ -291,14 +303,14 @@ public class RenderUtil
         IBlockState iblockstate = RenderUtil.mc.world.getBlockState(pos);
         Vec3d interp = EntityUtil.interpolateEntity(RenderUtil.mc.player, mc.getRenderPartialTicks());
         AxisAlignedBB bb = iblockstate.getSelectedBoundingBox(RenderUtil.mc.world, pos).grow(0.002f).offset(-interp.x, -interp.y, -interp.z).expand(0.0, height, 0.0);
-        float red = (float) startColor.getRed() / 255.0f;
-        float green = (float) startColor.getGreen() / 255.0f;
-        float blue = (float) startColor.getBlue() / 255.0f;
-        float alpha = (float) startColor.getAlpha() / 255.0f;
-        float red1 = (float) endColor.getRed() / 255.0f;
-        float green1 = (float) endColor.getGreen() / 255.0f;
-        float blue1 = (float) endColor.getBlue() / 255.0f;
-        float alpha1 = (float) endColor.getAlpha() / 255.0f;
+        float red = (float)startColor.getRed() / 255.0f;
+        float green = (float)startColor.getGreen() / 255.0f;
+        float blue = (float)startColor.getBlue() / 255.0f;
+        float alpha = (float)startColor.getAlpha() / 255.0f;
+        float red1 = (float)endColor.getRed() / 255.0f;
+        float green1 = (float)endColor.getGreen() / 255.0f;
+        float blue1 = (float)endColor.getBlue() / 255.0f;
+        float alpha1 = (float)endColor.getAlpha() / 255.0f;
         double x1 = 0.0;
         double y1 = 0.0;
         double z1 = 0.0;
@@ -459,14 +471,14 @@ public class RenderUtil
     }
 
     public static void drawGradientRect(int x, int y, int w, int h, int startColor, int endColor) {
-        float f = (float) (startColor >> 24 & 0xFF) / 255.0f;
-        float f1 = (float) (startColor >> 16 & 0xFF) / 255.0f;
-        float f2 = (float) (startColor >> 8 & 0xFF) / 255.0f;
-        float f3 = (float) (startColor & 0xFF) / 255.0f;
-        float f4 = (float) (endColor >> 24 & 0xFF) / 255.0f;
-        float f5 = (float) (endColor >> 16 & 0xFF) / 255.0f;
-        float f6 = (float) (endColor >> 8 & 0xFF) / 255.0f;
-        float f7 = (float) (endColor & 0xFF) / 255.0f;
+        float f = (float)(startColor >> 24 & 0xFF) / 255.0f;
+        float f1 = (float)(startColor >> 16 & 0xFF) / 255.0f;
+        float f2 = (float)(startColor >> 8 & 0xFF) / 255.0f;
+        float f3 = (float)(startColor & 0xFF) / 255.0f;
+        float f4 = (float)(endColor >> 24 & 0xFF) / 255.0f;
+        float f5 = (float)(endColor >> 16 & 0xFF) / 255.0f;
+        float f6 = (float)(endColor >> 8 & 0xFF) / 255.0f;
+        float f7 = (float)(endColor & 0xFF) / 255.0f;
         GlStateManager.disableTexture2D();
         GlStateManager.enableBlend();
         GlStateManager.disableAlpha();
@@ -475,10 +487,10 @@ public class RenderUtil
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder vertexbuffer = tessellator.getBuffer();
         vertexbuffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-        vertexbuffer.pos((double) x + (double) w, y, 0.0).color(f1, f2, f3, f).endVertex();
+        vertexbuffer.pos((double)x + (double)w, y, 0.0).color(f1, f2, f3, f).endVertex();
         vertexbuffer.pos(x, y, 0.0).color(f1, f2, f3, f).endVertex();
-        vertexbuffer.pos(x, (double) y + (double) h, 0.0).color(f5, f6, f7, f4).endVertex();
-        vertexbuffer.pos((double) x + (double) w, (double) y + (double) h, 0.0).color(f5, f6, f7, f4).endVertex();
+        vertexbuffer.pos(x, (double)y + (double)h, 0.0).color(f5, f6, f7, f4).endVertex();
+        vertexbuffer.pos((double)x + (double)w, (double)y + (double)h, 0.0).color(f5, f6, f7, f4).endVertex();
         tessellator.draw();
         GlStateManager.shadeModel(7424);
         GlStateManager.disableBlend();
@@ -499,18 +511,18 @@ public class RenderUtil
     }
 
     public static void drawProperGradientBlockOutline(AxisAlignedBB bb, Color startColor, Color midColor, Color endColor, float linewidth) {
-        float red = (float) endColor.getRed() / 255.0f;
-        float green = (float) endColor.getGreen() / 255.0f;
-        float blue = (float) endColor.getBlue() / 255.0f;
-        float alpha = (float) endColor.getAlpha() / 255.0f;
-        float red1 = (float) midColor.getRed() / 255.0f;
-        float green1 = (float) midColor.getGreen() / 255.0f;
-        float blue1 = (float) midColor.getBlue() / 255.0f;
-        float alpha1 = (float) midColor.getAlpha() / 255.0f;
-        float red2 = (float) startColor.getRed() / 255.0f;
-        float green2 = (float) startColor.getGreen() / 255.0f;
-        float blue2 = (float) startColor.getBlue() / 255.0f;
-        float alpha2 = (float) startColor.getAlpha() / 255.0f;
+        float red = (float)endColor.getRed() / 255.0f;
+        float green = (float)endColor.getGreen() / 255.0f;
+        float blue = (float)endColor.getBlue() / 255.0f;
+        float alpha = (float)endColor.getAlpha() / 255.0f;
+        float red1 = (float)midColor.getRed() / 255.0f;
+        float green1 = (float)midColor.getGreen() / 255.0f;
+        float blue1 = (float)midColor.getBlue() / 255.0f;
+        float alpha1 = (float)midColor.getAlpha() / 255.0f;
+        float red2 = (float)startColor.getRed() / 255.0f;
+        float green2 = (float)startColor.getGreen() / 255.0f;
+        float blue2 = (float)startColor.getBlue() / 255.0f;
+        float alpha2 = (float)startColor.getAlpha() / 255.0f;
         double dif = (bb.maxY - bb.minY) / 2.0;
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
@@ -578,14 +590,14 @@ public class RenderUtil
     }
 
     public static void drawGradientBlockOutline(AxisAlignedBB bb, Color startColor, Color endColor, float linewidth) {
-        float red = (float) startColor.getRed() / 255.0f;
-        float green = (float) startColor.getGreen() / 255.0f;
-        float blue = (float) startColor.getBlue() / 255.0f;
-        float alpha = (float) startColor.getAlpha() / 255.0f;
-        float red1 = (float) endColor.getRed() / 255.0f;
-        float green1 = (float) endColor.getGreen() / 255.0f;
-        float blue1 = (float) endColor.getBlue() / 255.0f;
-        float alpha1 = (float) endColor.getAlpha() / 255.0f;
+        float red = (float)startColor.getRed() / 255.0f;
+        float green = (float)startColor.getGreen() / 255.0f;
+        float blue = (float)startColor.getBlue() / 255.0f;
+        float alpha = (float)startColor.getAlpha() / 255.0f;
+        float red1 = (float)endColor.getRed() / 255.0f;
+        float green1 = (float)endColor.getGreen() / 255.0f;
+        float blue1 = (float)endColor.getBlue() / 255.0f;
+        float alpha1 = (float)endColor.getAlpha() / 255.0f;
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
         GlStateManager.disableDepth();
@@ -636,14 +648,14 @@ public class RenderUtil
         GlStateManager.tryBlendFuncSeparate(770, 771, 0, 1);
         GlStateManager.disableTexture2D();
         GlStateManager.depthMask(false);
-        float alpha = (float) endColor.getAlpha() / 255.0f;
-        float red = (float) endColor.getRed() / 255.0f;
-        float green = (float) endColor.getGreen() / 255.0f;
-        float blue = (float) endColor.getBlue() / 255.0f;
-        float alpha1 = (float) startColor.getAlpha() / 255.0f;
-        float red1 = (float) startColor.getRed() / 255.0f;
-        float green1 = (float) startColor.getGreen() / 255.0f;
-        float blue1 = (float) startColor.getBlue() / 255.0f;
+        float alpha = (float)endColor.getAlpha() / 255.0f;
+        float red = (float)endColor.getRed() / 255.0f;
+        float green = (float)endColor.getGreen() / 255.0f;
+        float blue = (float)endColor.getBlue() / 255.0f;
+        float alpha1 = (float)startColor.getAlpha() / 255.0f;
+        float red1 = (float)startColor.getRed() / 255.0f;
+        float green1 = (float)startColor.getGreen() / 255.0f;
+        float blue1 = (float)startColor.getBlue() / 255.0f;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuffer();
         bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
@@ -680,14 +692,14 @@ public class RenderUtil
     }
 
     public static void drawGradientRect(float x, float y, float w, float h, int startColor, int endColor) {
-        float f = (float) (startColor >> 24 & 0xFF) / 255.0f;
-        float f1 = (float) (startColor >> 16 & 0xFF) / 255.0f;
-        float f2 = (float) (startColor >> 8 & 0xFF) / 255.0f;
-        float f3 = (float) (startColor & 0xFF) / 255.0f;
-        float f4 = (float) (endColor >> 24 & 0xFF) / 255.0f;
-        float f5 = (float) (endColor >> 16 & 0xFF) / 255.0f;
-        float f6 = (float) (endColor >> 8 & 0xFF) / 255.0f;
-        float f7 = (float) (endColor & 0xFF) / 255.0f;
+        float f = (float)(startColor >> 24 & 0xFF) / 255.0f;
+        float f1 = (float)(startColor >> 16 & 0xFF) / 255.0f;
+        float f2 = (float)(startColor >> 8 & 0xFF) / 255.0f;
+        float f3 = (float)(startColor & 0xFF) / 255.0f;
+        float f4 = (float)(endColor >> 24 & 0xFF) / 255.0f;
+        float f5 = (float)(endColor >> 16 & 0xFF) / 255.0f;
+        float f6 = (float)(endColor >> 8 & 0xFF) / 255.0f;
+        float f7 = (float)(endColor & 0xFF) / 255.0f;
         GlStateManager.disableTexture2D();
         GlStateManager.enableBlend();
         GlStateManager.disableAlpha();
@@ -696,10 +708,10 @@ public class RenderUtil
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder vertexbuffer = tessellator.getBuffer();
         vertexbuffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-        vertexbuffer.pos((double) x + (double) w, y, 0.0).color(f1, f2, f3, f).endVertex();
+        vertexbuffer.pos((double)x + (double)w, y, 0.0).color(f1, f2, f3, f).endVertex();
         vertexbuffer.pos(x, y, 0.0).color(f1, f2, f3, f).endVertex();
-        vertexbuffer.pos(x, (double) y + (double) h, 0.0).color(f5, f6, f7, f4).endVertex();
-        vertexbuffer.pos((double) x + (double) w, (double) y + (double) h, 0.0).color(f5, f6, f7, f4).endVertex();
+        vertexbuffer.pos(x, (double)y + (double)h, 0.0).color(f5, f6, f7, f4).endVertex();
+        vertexbuffer.pos((double)x + (double)w, (double)y + (double)h, 0.0).color(f5, f6, f7, f4).endVertex();
         tessellator.draw();
         GlStateManager.shadeModel(7424);
         GlStateManager.disableBlend();
@@ -739,14 +751,14 @@ public class RenderUtil
     }
 
     public static void glScissor(float x, float y, float x1, float y1, ScaledResolution sr) {
-        GL11.glScissor((int) (x * (float) sr.getScaleFactor()), (int) ((float) RenderUtil.mc.displayHeight - y1 * (float) sr.getScaleFactor()), (int) ((x1 - x) * (float) sr.getScaleFactor()), (int) ((y1 - y) * (float) sr.getScaleFactor()));
+        GL11.glScissor((int)(x * (float)sr.getScaleFactor()), (int)((float)RenderUtil.mc.displayHeight - y1 * (float)sr.getScaleFactor()), (int)((x1 - x) * (float)sr.getScaleFactor()), (int)((y1 - y) * (float)sr.getScaleFactor()));
     }
 
     public static void drawLine(float x, float y, float x1, float y1, float thickness, int hex) {
-        float red = (float) (hex >> 16 & 0xFF) / 255.0f;
-        float green = (float) (hex >> 8 & 0xFF) / 255.0f;
-        float blue = (float) (hex & 0xFF) / 255.0f;
-        float alpha = (float) (hex >> 24 & 0xFF) / 255.0f;
+        float red = (float)(hex >> 16 & 0xFF) / 255.0f;
+        float green = (float)(hex >> 8 & 0xFF) / 255.0f;
+        float blue = (float)(hex & 0xFF) / 255.0f;
+        float alpha = (float)(hex >> 24 & 0xFF) / 255.0f;
         GlStateManager.pushMatrix();
         GlStateManager.disableTexture2D();
         GlStateManager.enableBlend();
@@ -771,7 +783,7 @@ public class RenderUtil
     }
 
     public static void drawBox(BlockPos pos, Color color) {
-        AxisAlignedBB bb = new AxisAlignedBB((double) pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double) pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double) pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double) (pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double) (pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY, (double) (pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
+        AxisAlignedBB bb = new AxisAlignedBB((double)pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double)pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double)pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double)(pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double)(pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY, (double)(pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
         camera.setPosition(Objects.requireNonNull(RenderUtil.mc.getRenderViewEntity()).posX, RenderUtil.mc.getRenderViewEntity().posY, RenderUtil.mc.getRenderViewEntity().posZ);
         if (camera.isBoundingBoxInFrustum(new AxisAlignedBB(bb.minX + RenderUtil.mc.getRenderManager().viewerPosX, bb.minY + RenderUtil.mc.getRenderManager().viewerPosY, bb.minZ + RenderUtil.mc.getRenderManager().viewerPosZ, bb.maxX + RenderUtil.mc.getRenderManager().viewerPosX, bb.maxY + RenderUtil.mc.getRenderManager().viewerPosY, bb.maxZ + RenderUtil.mc.getRenderManager().viewerPosZ))) {
             GlStateManager.pushMatrix();
@@ -782,7 +794,7 @@ public class RenderUtil
             GlStateManager.depthMask(false);
             GL11.glEnable(2848);
             GL11.glHint(3154, 4354);
-            RenderGlobal.renderFilledBox(bb, (float) color.getRed() / 255.0f, (float) color.getGreen() / 255.0f, (float) color.getBlue() / 255.0f, (float) color.getAlpha() / 255.0f);
+            RenderGlobal.renderFilledBox(bb, (float)color.getRed() / 255.0f, (float)color.getGreen() / 255.0f, (float)color.getBlue() / 255.0f, (float)color.getAlpha() / 255.0f);
             GL11.glDisable(2848);
             GlStateManager.depthMask(true);
             GlStateManager.enableDepth();
@@ -793,15 +805,15 @@ public class RenderUtil
     }
 
     public static void drawBetterGradientBox(BlockPos pos, Color startColor, Color endColor) {
-        float red = (float) startColor.getRed() / 255.0f;
-        float green = (float) startColor.getGreen() / 255.0f;
-        float blue = (float) startColor.getBlue() / 255.0f;
-        float alpha = (float) startColor.getAlpha() / 255.0f;
-        float red1 = (float) endColor.getRed() / 255.0f;
-        float green1 = (float) endColor.getGreen() / 255.0f;
-        float blue1 = (float) endColor.getBlue() / 255.0f;
-        float alpha1 = (float) endColor.getAlpha() / 255.0f;
-        AxisAlignedBB bb = new AxisAlignedBB((double) pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double) pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double) pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double) (pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double) (pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY, (double) (pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
+        float red = (float)startColor.getRed() / 255.0f;
+        float green = (float)startColor.getGreen() / 255.0f;
+        float blue = (float)startColor.getBlue() / 255.0f;
+        float alpha = (float)startColor.getAlpha() / 255.0f;
+        float red1 = (float)endColor.getRed() / 255.0f;
+        float green1 = (float)endColor.getGreen() / 255.0f;
+        float blue1 = (float)endColor.getBlue() / 255.0f;
+        float alpha1 = (float)endColor.getAlpha() / 255.0f;
+        AxisAlignedBB bb = new AxisAlignedBB((double)pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double)pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double)pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double)(pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double)(pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY, (double)(pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
         double offset = (bb.maxY - bb.minY) / 2.0;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder builder = tessellator.getBuffer();
@@ -847,19 +859,19 @@ public class RenderUtil
     }
 
     public static void drawBetterGradientBox(BlockPos pos, Color startColor, Color midColor, Color endColor) {
-        float red = (float) startColor.getRed() / 255.0f;
-        float green = (float) startColor.getGreen() / 255.0f;
-        float blue = (float) startColor.getBlue() / 255.0f;
-        float alpha = (float) startColor.getAlpha() / 255.0f;
-        float red1 = (float) endColor.getRed() / 255.0f;
-        float green1 = (float) endColor.getGreen() / 255.0f;
-        float blue1 = (float) endColor.getBlue() / 255.0f;
-        float alpha1 = (float) endColor.getAlpha() / 255.0f;
-        float red2 = (float) midColor.getRed() / 255.0f;
-        float green2 = (float) midColor.getGreen() / 255.0f;
-        float blue2 = (float) midColor.getBlue() / 255.0f;
-        float alpha2 = (float) midColor.getAlpha() / 255.0f;
-        AxisAlignedBB bb = new AxisAlignedBB((double) pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double) pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double) pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double) (pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double) (pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY, (double) (pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
+        float red = (float)startColor.getRed() / 255.0f;
+        float green = (float)startColor.getGreen() / 255.0f;
+        float blue = (float)startColor.getBlue() / 255.0f;
+        float alpha = (float)startColor.getAlpha() / 255.0f;
+        float red1 = (float)endColor.getRed() / 255.0f;
+        float green1 = (float)endColor.getGreen() / 255.0f;
+        float blue1 = (float)endColor.getBlue() / 255.0f;
+        float alpha1 = (float)endColor.getAlpha() / 255.0f;
+        float red2 = (float)midColor.getRed() / 255.0f;
+        float green2 = (float)midColor.getGreen() / 255.0f;
+        float blue2 = (float)midColor.getBlue() / 255.0f;
+        float alpha2 = (float)midColor.getAlpha() / 255.0f;
+        AxisAlignedBB bb = new AxisAlignedBB((double)pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double)pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double)pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double)(pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double)(pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY, (double)(pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
         double offset = (bb.maxY - bb.minY) / 2.0;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder builder = tessellator.getBuffer();
@@ -902,19 +914,19 @@ public class RenderUtil
     }
 
     public static void drawEvenBetterGradientBox(BlockPos pos, Color startColor, Color midColor, Color endColor) {
-        float red = (float) startColor.getRed() / 255.0f;
-        float green = (float) startColor.getGreen() / 255.0f;
-        float blue = (float) startColor.getBlue() / 255.0f;
-        float alpha = (float) startColor.getAlpha() / 255.0f;
-        float red1 = (float) endColor.getRed() / 255.0f;
-        float green1 = (float) endColor.getGreen() / 255.0f;
-        float blue1 = (float) endColor.getBlue() / 255.0f;
-        float alpha1 = (float) endColor.getAlpha() / 255.0f;
-        float red2 = (float) midColor.getRed() / 255.0f;
-        float green2 = (float) midColor.getGreen() / 255.0f;
-        float blue2 = (float) midColor.getBlue() / 255.0f;
-        float alpha2 = (float) midColor.getAlpha() / 255.0f;
-        AxisAlignedBB bb = new AxisAlignedBB((double) pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double) pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double) pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double) (pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double) (pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY, (double) (pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
+        float red = (float)startColor.getRed() / 255.0f;
+        float green = (float)startColor.getGreen() / 255.0f;
+        float blue = (float)startColor.getBlue() / 255.0f;
+        float alpha = (float)startColor.getAlpha() / 255.0f;
+        float red1 = (float)endColor.getRed() / 255.0f;
+        float green1 = (float)endColor.getGreen() / 255.0f;
+        float blue1 = (float)endColor.getBlue() / 255.0f;
+        float alpha1 = (float)endColor.getAlpha() / 255.0f;
+        float red2 = (float)midColor.getRed() / 255.0f;
+        float green2 = (float)midColor.getGreen() / 255.0f;
+        float blue2 = (float)midColor.getBlue() / 255.0f;
+        float alpha2 = (float)midColor.getAlpha() / 255.0f;
+        AxisAlignedBB bb = new AxisAlignedBB((double)pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double)pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double)pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double)(pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double)(pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY, (double)(pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
         double offset = (bb.maxY - bb.minY) / 2.0;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder builder = tessellator.getBuffer();
@@ -972,7 +984,7 @@ public class RenderUtil
             RenderUtil.drawOpenGradientBox(pos, invert ? endColor : color, invert ? color : endColor, height);
             return;
         }
-        AxisAlignedBB bb = new AxisAlignedBB((double) pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double) pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double) pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double) (pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double) (pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY + height, (double) (pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
+        AxisAlignedBB bb = new AxisAlignedBB((double)pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double)pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double)pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double)(pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double)(pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY + height, (double)(pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
         camera.setPosition(Objects.requireNonNull(RenderUtil.mc.getRenderViewEntity()).posX, RenderUtil.mc.getRenderViewEntity().posY, RenderUtil.mc.getRenderViewEntity().posZ);
         if (camera.isBoundingBoxInFrustum(new AxisAlignedBB(bb.minX + RenderUtil.mc.getRenderManager().viewerPosX, bb.minY + RenderUtil.mc.getRenderManager().viewerPosY, bb.minZ + RenderUtil.mc.getRenderManager().viewerPosZ, bb.maxX + RenderUtil.mc.getRenderManager().viewerPosX, bb.maxY + RenderUtil.mc.getRenderManager().viewerPosY, bb.maxZ + RenderUtil.mc.getRenderManager().viewerPosZ))) {
             GlStateManager.pushMatrix();
@@ -983,7 +995,7 @@ public class RenderUtil
             GlStateManager.depthMask(false);
             GL11.glEnable(2848);
             GL11.glHint(3154, 4354);
-            RenderGlobal.renderFilledBox(bb, (float) color.getRed() / 255.0f, (float) color.getGreen() / 255.0f, (float) color.getBlue() / 255.0f, (float) color.getAlpha() / 255.0f);
+            RenderGlobal.renderFilledBox(bb, (float)color.getRed() / 255.0f, (float)color.getGreen() / 255.0f, (float)color.getBlue() / 255.0f, (float)color.getAlpha() / 255.0f);
             GL11.glDisable(2848);
             GlStateManager.depthMask(true);
             GlStateManager.enableDepth();
@@ -1009,16 +1021,16 @@ public class RenderUtil
         }
         IBlockState iblockstate = RenderUtil.mc.world.getBlockState(pos);
         if ((air || iblockstate.getMaterial() != Material.AIR) && RenderUtil.mc.world.getWorldBorder().contains(pos)) {
-            AxisAlignedBB blockAxis = new AxisAlignedBB((double) pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double) pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double) pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double) (pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double) (pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY + height, (double) (pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
+            AxisAlignedBB blockAxis = new AxisAlignedBB((double)pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double)pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double)pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double)(pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double)(pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY + height, (double)(pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
             RenderUtil.drawBlockOutline(blockAxis.grow(0.002f), color, linewidth);
         }
     }
 
     public static void drawBlockOutline(AxisAlignedBB bb, Color color, float linewidth) {
-        float red = (float) color.getRed() / 255.0f;
-        float green = (float) color.getGreen() / 255.0f;
-        float blue = (float) color.getBlue() / 255.0f;
-        float alpha = (float) color.getAlpha() / 255.0f;
+        float red = (float)color.getRed() / 255.0f;
+        float green = (float)color.getGreen() / 255.0f;
+        float blue = (float)color.getBlue() / 255.0f;
+        float alpha = (float)color.getAlpha() / 255.0f;
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
         GlStateManager.disableDepth();
@@ -1057,7 +1069,7 @@ public class RenderUtil
     }
 
     public static void drawBoxESP(BlockPos pos, Color color, float lineWidth, boolean outline, boolean box, int boxAlpha) {
-        AxisAlignedBB bb = new AxisAlignedBB((double) pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double) pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double) pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double) (pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double) (pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY, (double) (pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
+        AxisAlignedBB bb = new AxisAlignedBB((double)pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double)pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double)pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double)(pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double)(pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY, (double)(pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
         camera.setPosition(Objects.requireNonNull(RenderUtil.mc.getRenderViewEntity()).posX, RenderUtil.mc.getRenderViewEntity().posY, RenderUtil.mc.getRenderViewEntity().posZ);
         if (camera.isBoundingBoxInFrustum(new AxisAlignedBB(bb.minX + RenderUtil.mc.getRenderManager().viewerPosX, bb.minY + RenderUtil.mc.getRenderManager().viewerPosY, bb.minZ + RenderUtil.mc.getRenderManager().viewerPosZ, bb.maxX + RenderUtil.mc.getRenderManager().viewerPosX, bb.maxY + RenderUtil.mc.getRenderManager().viewerPosY, bb.maxZ + RenderUtil.mc.getRenderManager().viewerPosZ))) {
             GlStateManager.pushMatrix();
@@ -1069,12 +1081,12 @@ public class RenderUtil
             GL11.glEnable(2848);
             GL11.glHint(3154, 4354);
             GL11.glLineWidth(lineWidth);
-            double dist = RenderUtil.mc.player.getDistance((float) pos.getX() + 0.5f, (float) pos.getY() + 0.5f, (float) pos.getZ() + 0.5f) * 0.75;
+            double dist = RenderUtil.mc.player.getDistance((float)pos.getX() + 0.5f, (float)pos.getY() + 0.5f, (float)pos.getZ() + 0.5f) * 0.75;
             if (box) {
-                RenderGlobal.renderFilledBox(bb, (float) color.getRed() / 255.0f, (float) color.getGreen() / 255.0f, (float) color.getBlue() / 255.0f, (float) boxAlpha / 255.0f);
+                RenderGlobal.renderFilledBox(bb, (float)color.getRed() / 255.0f, (float)color.getGreen() / 255.0f, (float)color.getBlue() / 255.0f, (float)boxAlpha / 255.0f);
             }
             if (outline) {
-                RenderGlobal.drawBoundingBox(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ, (float) color.getRed() / 255.0f, (float) color.getGreen() / 255.0f, (float) color.getBlue() / 255.0f, (float) color.getAlpha() / 255.0f);
+                RenderGlobal.drawBoundingBox(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ, (float)color.getRed() / 255.0f, (float)color.getGreen() / 255.0f, (float)color.getBlue() / 255.0f, (float)color.getAlpha() / 255.0f);
             }
             GL11.glDisable(2848);
             GlStateManager.depthMask(true);
@@ -1085,16 +1097,10 @@ public class RenderUtil
         }
     }
 
-    public static void drawText(BlockPos pos, String text) {
+    public static void drawText(AxisAlignedBB pos, String text) {
         if (pos == null || text == null) {
             return;
         }
-        GlStateManager.pushMatrix();
-        RenderUtil.glBillboardDistanceScaled((float) pos.getX() + 0.5f, (float) pos.getY() + 0.5f, (float) pos.getZ() + 0.5f, RenderUtil.mc.player, 1.0f);
-        GlStateManager.disableDepth();
-        GlStateManager.translate(-((double) Phobos.textManager.getStringWidth(text) / 2.0), 0.0, 0.0);
-        Phobos.textManager.drawStringWithShadow(text, 0.0f, 0.0f, -5592406);
-        GlStateManager.popMatrix();
     }
 
     public static void drawOutlinedBlockESP(BlockPos pos, Color color, float linewidth) {
@@ -1104,9 +1110,9 @@ public class RenderUtil
     }
 
     public static void blockEsp(BlockPos blockPos, Color c, double length, double length2) {
-        double x = (double) blockPos.getX() - RenderUtil.mc.renderManager.renderPosX;
-        double y = (double) blockPos.getY() - RenderUtil.mc.renderManager.renderPosY;
-        double z = (double) blockPos.getZ() - RenderUtil.mc.renderManager.renderPosZ;
+        double x = (double)blockPos.getX() - RenderUtil.mc.renderManager.renderPosX;
+        double y = (double)blockPos.getY() - RenderUtil.mc.renderManager.renderPosY;
+        double z = (double)blockPos.getZ() - RenderUtil.mc.renderManager.renderPosZ;
         GL11.glPushMatrix();
         GL11.glBlendFunc(770, 771);
         GL11.glEnable(3042);
@@ -1114,7 +1120,7 @@ public class RenderUtil
         GL11.glDisable(3553);
         GL11.glDisable(2929);
         GL11.glDepthMask(false);
-        GL11.glColor4d((float) c.getRed() / 255.0f, (float) c.getGreen() / 255.0f, (float) c.getBlue() / 255.0f, 0.25);
+        GL11.glColor4d((float)c.getRed() / 255.0f, (float)c.getGreen() / 255.0f, (float)c.getBlue() / 255.0f, 0.25);
         RenderUtil.drawColorBox(new AxisAlignedBB(x, y, z, x + length2, y + 1.0, z + length), 0.0f, 0.0f, 0.0f, 0.0f);
         GL11.glColor4d(0.0, 0.0, 0.0, 0.5);
         RenderUtil.drawSelectionBoundingBox(new AxisAlignedBB(x, y, z, x + length2, y + 1.0, z + length));
@@ -1128,10 +1134,10 @@ public class RenderUtil
     }
 
     public static void drawRect(float x, float y, float w, float h, int color) {
-        float alpha = (float) (color >> 24 & 0xFF) / 255.0f;
-        float red = (float) (color >> 16 & 0xFF) / 255.0f;
-        float green = (float) (color >> 8 & 0xFF) / 255.0f;
-        float blue = (float) (color & 0xFF) / 255.0f;
+        float alpha = (float)(color >> 24 & 0xFF) / 255.0f;
+        float red = (float)(color >> 16 & 0xFF) / 255.0f;
+        float green = (float)(color >> 8 & 0xFF) / 255.0f;
+        float blue = (float)(color & 0xFF) / 255.0f;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuffer();
         GlStateManager.enableBlend();
@@ -1304,7 +1310,7 @@ public class RenderUtil
     }
 
     public static void drawFilledBoxESPN(BlockPos pos, Color color) {
-        AxisAlignedBB bb = new AxisAlignedBB((double) pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double) pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double) pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double) (pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double) (pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY, (double) (pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
+        AxisAlignedBB bb = new AxisAlignedBB((double)pos.getX() - RenderUtil.mc.getRenderManager().viewerPosX, (double)pos.getY() - RenderUtil.mc.getRenderManager().viewerPosY, (double)pos.getZ() - RenderUtil.mc.getRenderManager().viewerPosZ, (double)(pos.getX() + 1) - RenderUtil.mc.getRenderManager().viewerPosX, (double)(pos.getY() + 1) - RenderUtil.mc.getRenderManager().viewerPosY, (double)(pos.getZ() + 1) - RenderUtil.mc.getRenderManager().viewerPosZ);
         int rgba = ColorUtil.toRGBA(color);
         RenderUtil.drawFilledBox(bb, rgba);
     }
@@ -1316,10 +1322,10 @@ public class RenderUtil
         GlStateManager.tryBlendFuncSeparate(770, 771, 0, 1);
         GlStateManager.disableTexture2D();
         GlStateManager.depthMask(false);
-        float alpha = (float) (color >> 24 & 0xFF) / 255.0f;
-        float red = (float) (color >> 16 & 0xFF) / 255.0f;
-        float green = (float) (color >> 8 & 0xFF) / 255.0f;
-        float blue = (float) (color & 0xFF) / 255.0f;
+        float alpha = (float)(color >> 24 & 0xFF) / 255.0f;
+        float red = (float)(color >> 16 & 0xFF) / 255.0f;
+        float green = (float)(color >> 8 & 0xFF) / 255.0f;
+        float blue = (float)(color & 0xFF) / 255.0f;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuffer();
         bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
@@ -1365,10 +1371,10 @@ public class RenderUtil
         GL11.glEnable(2848);
         GL11.glHint(3154, 4354);
         GL11.glLineWidth(width);
-        float alpha = (float) (color >> 24 & 0xFF) / 255.0f;
-        float red = (float) (color >> 16 & 0xFF) / 255.0f;
-        float green = (float) (color >> 8 & 0xFF) / 255.0f;
-        float blue = (float) (color & 0xFF) / 255.0f;
+        float alpha = (float)(color >> 24 & 0xFF) / 255.0f;
+        float red = (float)(color >> 16 & 0xFF) / 255.0f;
+        float green = (float)(color >> 8 & 0xFF) / 255.0f;
+        float blue = (float)(color & 0xFF) / 255.0f;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuffer();
         bufferbuilder.begin(3, DefaultVertexFormats.POSITION_COLOR);
@@ -1399,7 +1405,7 @@ public class RenderUtil
 
     public static void glBillboard(float x, float y, float z) {
         float scale = 0.02666667f;
-        GlStateManager.translate((double) x - RenderUtil.mc.getRenderManager().renderPosX, (double) y - RenderUtil.mc.getRenderManager().renderPosY, (double) z - RenderUtil.mc.getRenderManager().renderPosZ);
+        GlStateManager.translate((double)x - RenderUtil.mc.getRenderManager().renderPosX, (double)y - RenderUtil.mc.getRenderManager().renderPosY, (double)z - RenderUtil.mc.getRenderManager().renderPosZ);
         GlStateManager.glNormal3f(0.0f, 1.0f, 0.0f);
         GlStateManager.rotate(-RenderUtil.mc.player.rotationYaw, 0.0f, 1.0f, 0.0f);
         GlStateManager.rotate(RenderUtil.mc.player.rotationPitch, RenderUtil.mc.gameSettings.thirdPersonView == 2 ? -1.0f : 1.0f, 0.0f, 0.0f);
@@ -1408,8 +1414,8 @@ public class RenderUtil
 
     public static void glBillboardDistanceScaled(float x, float y, float z, EntityPlayer player, float scale) {
         RenderUtil.glBillboard(x, y, z);
-        int distance = (int) player.getDistance(x, y, z);
-        float scaleDistance = (float) distance / 2.0f / (2.0f + (2.0f - scale));
+        int distance = (int)player.getDistance(x, y, z);
+        float scaleDistance = (float)distance / 2.0f / (2.0f + (2.0f - scale));
         if (scaleDistance < 1.0f) {
             scaleDistance = 1.0f;
         }
@@ -1491,7 +1497,7 @@ public class RenderUtil
         if (projection.getType() == GLUProjection.Projection.Type.INSIDE) {
             GlStateManager.pushMatrix();
             GlStateManager.translate(projection.getX(), projection.getY(), 0.0);
-            Phobos.textManager.drawString(text, -((float) Phobos.textManager.getStringWidth(text) / 2.0f) + addX, addY, color.getRGB(), shadow);
+            Phobos.textManager.drawString(text, -((float)Phobos.textManager.getStringWidth(text) / 2.0f) + addX, addY, color.getRGB(), shadow);
             GlStateManager.translate(-projection.getX(), -projection.getY(), 0.0);
             GlStateManager.popMatrix();
         }
@@ -1531,10 +1537,10 @@ public class RenderUtil
     }
 
     public static void drawOutlineRect(float x, float y, float w, float h, int color) {
-        float alpha = (float) (color >> 24 & 0xFF) / 255.0f;
-        float red = (float) (color >> 16 & 0xFF) / 255.0f;
-        float green = (float) (color >> 8 & 0xFF) / 255.0f;
-        float blue = (float) (color & 0xFF) / 255.0f;
+        float alpha = (float)(color >> 24 & 0xFF) / 255.0f;
+        float red = (float)(color >> 16 & 0xFF) / 255.0f;
+        float green = (float)(color >> 8 & 0xFF) / 255.0f;
+        float blue = (float)(color & 0xFF) / 255.0f;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuffer();
         GlStateManager.enableBlend();
@@ -1552,14 +1558,14 @@ public class RenderUtil
     }
 
     public static void draw3DRect(float x, float y, float w, float h, Color startColor, Color endColor, float lineWidth) {
-        float alpha = (float) startColor.getAlpha() / 255.0f;
-        float red = (float) startColor.getRed() / 255.0f;
-        float green = (float) startColor.getGreen() / 255.0f;
-        float blue = (float) startColor.getBlue() / 255.0f;
-        float alpha1 = (float) endColor.getAlpha() / 255.0f;
-        float red1 = (float) endColor.getRed() / 255.0f;
-        float green1 = (float) endColor.getGreen() / 255.0f;
-        float blue1 = (float) endColor.getBlue() / 255.0f;
+        float alpha = (float)startColor.getAlpha() / 255.0f;
+        float red = (float)startColor.getRed() / 255.0f;
+        float green = (float)startColor.getGreen() / 255.0f;
+        float blue = (float)startColor.getBlue() / 255.0f;
+        float alpha1 = (float)endColor.getAlpha() / 255.0f;
+        float red1 = (float)endColor.getRed() / 255.0f;
+        float green1 = (float)endColor.getGreen() / 255.0f;
+        float blue1 = (float)endColor.getBlue() / 255.0f;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuffer();
         GlStateManager.enableBlend();
@@ -1586,7 +1592,7 @@ public class RenderUtil
         int totalHoursTime = Calendar.getInstance().get(10);
         if (fill) {
             GL11.glPushMatrix();
-            GL11.glColor4f((float) color.getRed() / 255.0f, (float) color.getGreen() / 255.0f, (float) color.getBlue() / 255.0f, (float) color.getAlpha() / 255.0f);
+            GL11.glColor4f((float)color.getRed() / 255.0f, (float)color.getGreen() / 255.0f, (float)color.getBlue() / 255.0f, (float)color.getAlpha() / 255.0f);
             GL11.glBlendFunc(770, 771);
             GL11.glEnable(3042);
             GL11.glLineWidth(lineWidth);
@@ -1600,22 +1606,22 @@ public class RenderUtil
             GL11.glPopMatrix();
         } else {
             GL11.glPushMatrix();
-            GL11.glColor4f((float) color.getRed() / 255.0f, (float) color.getGreen() / 255.0f, (float) color.getBlue() / 255.0f, (float) color.getAlpha() / 255.0f);
+            GL11.glColor4f((float)color.getRed() / 255.0f, (float)color.getGreen() / 255.0f, (float)color.getBlue() / 255.0f, (float)color.getAlpha() / 255.0f);
             GL11.glEnable(3042);
             GL11.glLineWidth(lineWidth);
             GL11.glDisable(3553);
             GL11.glBegin(3);
             ArrayList<Vec2f> hVectors = new ArrayList<Vec2f>();
-            float hue = (float) (System.currentTimeMillis() % 7200L) / 7200.0f;
+            float hue = (float)(System.currentTimeMillis() % 7200L) / 7200.0f;
             for (int i = 0; i <= 360; ++i) {
-                Vec2f vec = new Vec2f(x + (float) Math.sin((double) i * Math.PI / 180.0) * radius, y + (float) Math.cos((double) i * Math.PI / 180.0) * radius);
+                Vec2f vec = new Vec2f(x + (float)Math.sin((double)i * Math.PI / 180.0) * radius, y + (float)Math.cos((double)i * Math.PI / 180.0) * radius);
                 hVectors.add(vec);
             }
             Color color1 = new Color(Color.HSBtoRGB(hue, 1.0f, 1.0f));
             for (int j = 0; j < hVectors.size() - 1; ++j) {
-                GL11.glColor4f((float) color1.getRed() / 255.0f, (float) color1.getGreen() / 255.0f, (float) color1.getBlue() / 255.0f, (float) color1.getAlpha() / 255.0f);
-                GL11.glVertex3d(hVectors.get(j).x, hVectors.get(j).y, 0.0);
-                GL11.glVertex3d(hVectors.get(j + 1).x, hVectors.get(j + 1).y, 0.0);
+                GL11.glColor4f((float)color1.getRed() / 255.0f, (float)color1.getGreen() / 255.0f, (float)color1.getBlue() / 255.0f, (float)color1.getAlpha() / 255.0f);
+                GL11.glVertex3d(((Vec2f)hVectors.get((int)j)).x, ((Vec2f)hVectors.get((int)j)).y, 0.0);
+                GL11.glVertex3d(((Vec2f)hVectors.get((int)(j + 1))).x, ((Vec2f)hVectors.get((int)(j + 1))).y, 0.0);
                 color1 = new Color(Color.HSBtoRGB(hue += 0.0027777778f, 1.0f, 1.0f));
             }
             GL11.glEnd();
@@ -1623,9 +1629,9 @@ public class RenderUtil
             GL11.glDisable(3042);
             GL11.glPopMatrix();
         }
-        RenderUtil.drawLine(x, y, x + (float) Math.sin((double) hourAngle * Math.PI / 180.0) * (radius / 2.0f), y + (float) Math.cos((double) hourAngle * Math.PI / 180.0) * (radius / 2.0f), 1.0f, Color.WHITE.getRGB());
-        RenderUtil.drawLine(x, y, x + (float) Math.sin((double) minuteAngle * Math.PI / 180.0) * (radius - radius / 10.0f), y + (float) Math.cos((double) minuteAngle * Math.PI / 180.0) * (radius - radius / 10.0f), 1.0f, Color.WHITE.getRGB());
-        RenderUtil.drawLine(x, y, x + (float) Math.sin((double) secondAngle * Math.PI / 180.0) * (radius - radius / 10.0f), y + (float) Math.cos((double) secondAngle * Math.PI / 180.0) * (radius - radius / 10.0f), 1.0f, Color.RED.getRGB());
+        RenderUtil.drawLine(x, y, x + (float)Math.sin((double)hourAngle * Math.PI / 180.0) * (radius / 2.0f), y + (float)Math.cos((double)hourAngle * Math.PI / 180.0) * (radius / 2.0f), 1.0f, Color.WHITE.getRGB());
+        RenderUtil.drawLine(x, y, x + (float)Math.sin((double)minuteAngle * Math.PI / 180.0) * (radius - radius / 10.0f), y + (float)Math.cos((double)minuteAngle * Math.PI / 180.0) * (radius - radius / 10.0f), 1.0f, Color.WHITE.getRGB());
+        RenderUtil.drawLine(x, y, x + (float)Math.sin((double)secondAngle * Math.PI / 180.0) * (radius - radius / 10.0f), y + (float)Math.cos((double)secondAngle * Math.PI / 180.0) * (radius - radius / 10.0f), 1.0f, Color.RED.getRGB());
     }
 
     public static void GLPre(float lineWidth) {
@@ -1699,13 +1705,13 @@ public class RenderUtil
 
     public static void drawArc(float cx, float cy, float r, float start_angle, float end_angle, int num_segments) {
         GL11.glBegin(4);
-        int i = (int) ((float) num_segments / (360.0f / start_angle)) + 1;
-        while ((float) i <= (float) num_segments / (360.0f / end_angle)) {
-            double previousangle = Math.PI * 2 * (double) (i - 1) / (double) num_segments;
-            double angle = Math.PI * 2 * (double) i / (double) num_segments;
+        int i = (int)((float)num_segments / (360.0f / start_angle)) + 1;
+        while ((float)i <= (float)num_segments / (360.0f / end_angle)) {
+            double previousangle = Math.PI * 2 * (double)(i - 1) / (double)num_segments;
+            double angle = Math.PI * 2 * (double)i / (double)num_segments;
             GL11.glVertex2d(cx, cy);
-            GL11.glVertex2d((double) cx + Math.cos(angle) * (double) r, (double) cy + Math.sin(angle) * (double) r);
-            GL11.glVertex2d((double) cx + Math.cos(previousangle) * (double) r, (double) cy + Math.sin(previousangle) * (double) r);
+            GL11.glVertex2d((double)cx + Math.cos(angle) * (double)r, (double)cy + Math.sin(angle) * (double)r);
+            GL11.glVertex2d((double)cx + Math.cos(previousangle) * (double)r, (double)cy + Math.sin(previousangle) * (double)r);
             ++i;
         }
         RenderUtil.glEnd();
@@ -1713,10 +1719,10 @@ public class RenderUtil
 
     public static void drawArcOutline(float cx, float cy, float r, float start_angle, float end_angle, int num_segments) {
         GL11.glBegin(2);
-        int i = (int) ((float) num_segments / (360.0f / start_angle)) + 1;
-        while ((float) i <= (float) num_segments / (360.0f / end_angle)) {
-            double angle = Math.PI * 2 * (double) i / (double) num_segments;
-            GL11.glVertex2d((double) cx + Math.cos(angle) * (double) r, (double) cy + Math.sin(angle) * (double) r);
+        int i = (int)((float)num_segments / (360.0f / start_angle)) + 1;
+        while ((float)i <= (float)num_segments / (360.0f / end_angle)) {
+            double angle = Math.PI * 2 * (double)i / (double)num_segments;
+            GL11.glVertex2d((double)cx + Math.cos(angle) * (double)r, (double)cy + Math.sin(angle) * (double)r);
             ++i;
         }
         RenderUtil.glEnd();
@@ -1741,7 +1747,7 @@ public class RenderUtil
     public static void drawOutlinedRoundedRectangle(int x, int y, int width, int height, float radius, float dR, float dG, float dB, float dA, float outlineWidth) {
         RenderUtil.drawRoundedRectangle(x, y, width, height, radius);
         GL11.glColor4f(dR, dG, dB, dA);
-        RenderUtil.drawRoundedRectangle((float) x + outlineWidth, (float) y + outlineWidth, (float) width - outlineWidth * 2.0f, (float) height - outlineWidth * 2.0f, radius);
+        RenderUtil.drawRoundedRectangle((float)x + outlineWidth, (float)y + outlineWidth, (float)width - outlineWidth * 2.0f, (float)height - outlineWidth * 2.0f, radius);
     }
 
     public static void drawRectangle(float x, float y, float width, float height) {
@@ -1781,16 +1787,16 @@ public class RenderUtil
         GL11.glGetFloat(2982, modelView);
         GL11.glGetFloat(2983, projection);
         GL11.glGetInteger(2978, viewport);
-        boolean result = GLU.gluProject((float) x, (float) y, (float) z, modelView, projection, viewport, screenCoords);
+        boolean result = GLU.gluProject((float)x, (float)y, (float)z, modelView, projection, viewport, screenCoords);
         if (result) {
-            return new Vec3d(screenCoords.get(0), (float) Display.getHeight() - screenCoords.get(1), screenCoords.get(2));
+            return new Vec3d(screenCoords.get(0), (float)Display.getHeight() - screenCoords.get(1), screenCoords.get(2));
         }
         return null;
     }
 
     public static void drawTracerPointer(float x, float y, float size, float widthDiv, float heightDiv, boolean outline, float outlineWidth, int color) {
         boolean blend = GL11.glIsEnabled(3042);
-        float alpha = (float) (color >> 24 & 0xFF) / 255.0f;
+        float alpha = (float)(color >> 24 & 0xFF) / 255.0f;
         GL11.glEnable(3042);
         GL11.glDisable(3553);
         GL11.glBlendFunc(770, 771);
@@ -1824,15 +1830,15 @@ public class RenderUtil
     }
 
     public static int getRainbow(int speed, int offset, float s, float b) {
-        float hue = (System.currentTimeMillis() + (long) offset) % (long) speed;
-        return Color.getHSBColor(hue /= (float) speed, s, b).getRGB();
+        float hue = (System.currentTimeMillis() + (long)offset) % (long)speed;
+        return Color.getHSBColor(hue /= (float)speed, s, b).getRGB();
     }
 
     public static void hexColor(int hexColor) {
-        float red = (float) (hexColor >> 16 & 0xFF) / 255.0f;
-        float green = (float) (hexColor >> 8 & 0xFF) / 255.0f;
-        float blue = (float) (hexColor & 0xFF) / 255.0f;
-        float alpha = (float) (hexColor >> 24 & 0xFF) / 255.0f;
+        float red = (float)(hexColor >> 16 & 0xFF) / 255.0f;
+        float green = (float)(hexColor >> 8 & 0xFF) / 255.0f;
+        float blue = (float)(hexColor & 0xFF) / 255.0f;
+        float alpha = (float)(hexColor >> 24 & 0xFF) / 255.0f;
         GL11.glColor4f(red, green, blue, alpha);
     }
 
@@ -1929,7 +1935,7 @@ public class RenderUtil
     }
 
     public static void setColor(Color color) {
-        GL11.glColor4d((double) color.getRed() / 255.0, (double) color.getGreen() / 255.0, (double) color.getBlue() / 255.0, (double) color.getAlpha() / 255.0);
+        GL11.glColor4d((double)color.getRed() / 255.0, (double)color.getGreen() / 255.0, (double)color.getBlue() / 255.0, (double)color.getAlpha() / 255.0);
     }
 
     public static void checkSetupFBO() {
@@ -1961,8 +1967,50 @@ public class RenderUtil
     public static void release() {
     }
 
+    public static void drawSexyBoxPhobosIsRetardedFuckYouESP(AxisAlignedBB axisAlignedBB, Color boxC, Color outlineC, Float value, Boolean value1, Boolean value2, Boolean value3, float v, float v1, Float value4) {
+    }
+
+    public static final class GeometryMasks {
+        public static final HashMap<EnumFacing, Integer> FACEMAP = new HashMap();
+
+        static {
+            FACEMAP.put(EnumFacing.DOWN, 1);
+            FACEMAP.put(EnumFacing.WEST, 16);
+            FACEMAP.put(EnumFacing.NORTH, 4);
+            FACEMAP.put(EnumFacing.SOUTH, 8);
+            FACEMAP.put(EnumFacing.EAST, 32);
+            FACEMAP.put(EnumFacing.UP, 2);
+        }
+
+        public static final class Quad {
+            public static final int DOWN = 1;
+            public static final int UP = 2;
+            public static final int NORTH = 4;
+            public static final int SOUTH = 8;
+            public static final int WEST = 16;
+            public static final int EAST = 32;
+            public static final int ALL = 63;
+        }
+
+        public static final class Line {
+            public static final int DOWN_WEST = 17;
+            public static final int UP_WEST = 18;
+            public static final int DOWN_EAST = 33;
+            public static final int UP_EAST = 34;
+            public static final int DOWN_NORTH = 5;
+            public static final int UP_NORTH = 6;
+            public static final int DOWN_SOUTH = 9;
+            public static final int UP_SOUTH = 10;
+            public static final int NORTH_WEST = 20;
+            public static final int NORTH_EAST = 36;
+            public static final int SOUTH_WEST = 24;
+            public static final int SOUTH_EAST = 40;
+            public static final int ALL = 63;
+        }
+    }
+
     public static class RenderTesselator
-            extends Tessellator {
+    extends Tessellator {
         public static RenderTesselator INSTANCE = new RenderTesselator();
 
         public RenderTesselator() {
@@ -2188,44 +2236,4 @@ public class RenderUtil
             RenderTesselator.drawBox(INSTANCE.getBuffer(), blockPos.getX(), blockPos.getY(), blockPos.getZ(), 1.0f, 0.5f, 1.0f, r, g, b, a, sides);
         }
     }
-
-    public static final class GeometryMasks {
-        public static final HashMap<EnumFacing, Integer> FACEMAP = new HashMap();
-
-        static {
-            FACEMAP.put(EnumFacing.DOWN, 1);
-            FACEMAP.put(EnumFacing.WEST, 16);
-            FACEMAP.put(EnumFacing.NORTH, 4);
-            FACEMAP.put(EnumFacing.SOUTH, 8);
-            FACEMAP.put(EnumFacing.EAST, 32);
-            FACEMAP.put(EnumFacing.UP, 2);
-        }
-
-        public static final class Line {
-            public static final int DOWN_WEST = 17;
-            public static final int UP_WEST = 18;
-            public static final int DOWN_EAST = 33;
-            public static final int UP_EAST = 34;
-            public static final int DOWN_NORTH = 5;
-            public static final int UP_NORTH = 6;
-            public static final int DOWN_SOUTH = 9;
-            public static final int UP_SOUTH = 10;
-            public static final int NORTH_WEST = 20;
-            public static final int NORTH_EAST = 36;
-            public static final int SOUTH_WEST = 24;
-            public static final int SOUTH_EAST = 40;
-            public static final int ALL = 63;
-        }
-
-        public static final class Quad {
-            public static final int DOWN = 1;
-            public static final int UP = 2;
-            public static final int NORTH = 4;
-            public static final int SOUTH = 8;
-            public static final int WEST = 16;
-            public static final int EAST = 32;
-            public static final int ALL = 63;
-        }
-    }
 }
-
