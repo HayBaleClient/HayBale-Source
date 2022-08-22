@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import net.minecraft.client.network.NetworkPlayerInfo;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -299,7 +300,7 @@ implements Util {
             NetworkPlayerInfo profile;
             try {
                 ArrayList infoMap = new ArrayList(Objects.requireNonNull(Util.mc.getConnection()).getPlayerInfoMap());
-                profile = infoMap.stream().filter(networkPlayerInfo -> networkPlayerInfo.getGameProfile().getName().equalsIgnoreCase(this.name)).findFirst().orElse(null);
+                profile = (NetworkPlayerInfo) infoMap.stream().filter(networkPlayerInfo -> new getGameProfile().getName().equalsIgnoreCase(this.name)).findFirst().orElse(null);
                 assert (profile != null);
                 this.uuid = profile.getGameProfile().getId();
             }
@@ -335,6 +336,12 @@ implements Util {
 
         public String getName() {
             return this.name;
+        }
+
+        private class getGameProfile {
+            public String getName() {
+                return null;
+            }
         }
     }
 }
