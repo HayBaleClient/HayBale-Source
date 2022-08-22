@@ -64,7 +64,7 @@ implements Util {
     public static void placeBlockScaffold(BlockPos pos) {
         Vec3d eyesPos = new Vec3d(BlockUtil.mc.player.posX, BlockUtil.mc.player.posY + (double)BlockUtil.mc.player.getEyeHeight(), BlockUtil.mc.player.posZ);
         for (EnumFacing side : EnumFacing.values()) {
-            Vec3d vec3d;
+            Vec3d vec3d = null;
             BlockPos neighbor = pos.offset(side);
             EnumFacing side2 = side.getOpposite();
             if (!BlockUtil2.canBeClicked(neighbor)) continue;
