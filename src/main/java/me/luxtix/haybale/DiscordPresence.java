@@ -27,6 +27,8 @@ public class DiscordPresence {
         DiscordPresence.presence.state = RPC.INSTANCE.state.getValue();
         DiscordPresence.presence.largeImageKey = "latest-removebg";
         DiscordPresence.presence.largeImageText = "HayBalls Client";
+        DiscordPresence.presence.partyId = "ae488379-351d-4a4f-ad32-2b9b01c91657";
+        DiscordPresence.presence.joinSecret = "MTI4NzM0OjFpMmhuZToxMjMxMjM=";
         rpc.Discord_UpdatePresence(presence);
         thread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {

@@ -8,7 +8,7 @@ public class RPC
         extends Module {
     public static RPC INSTANCE;
     public Setting<Boolean> showIP = this.register(new Setting<Boolean>("ShowIP", Boolean.valueOf(true), "Shows the server IP in your discord presence."));
-    public Setting<String> state = this.register(new Setting<String>("State", "Winning with HayBale Beta 1.0.1 https://discord.gg/KTUmN8YhBd", "Sets the state of the DiscordRPC."));
+    public Setting<String> state = this.register(new Setting<String>("State", "Winning with HayBale Reborn 1.0.1", "Sets the state of the DiscordRPC."));
 
     public RPC() {
         super("RPC", "Discord rich presence", Module.Category.MISC, false, false, false);
